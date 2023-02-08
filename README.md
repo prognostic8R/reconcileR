@@ -28,7 +28,47 @@ if (FALSE) install.packages("remotes")
 remotes::install_github("prognostic8R/reconcileR")
 ```
 
-## Example
+## Examples
+
+### Example 1: An interpretable sum matrix
+
+* A call to `sum_matrix(.return = "tibble")` will clearly show how the various data 
+aggregations given in the `keys` argument relates to the sum matrix which begins at 
+`x1`. A call to `sum_matrix(.return = "matrix")` will return just the numeric sum matrix 
+as a `matrix`.
+
+* `sum_matrix(.return = "tibble")` function return:
+
+    + `.keys` (list): Gives the forecast hierarchy in the input data set in `data`. A value 
+of `character(0)` would indicate that all grouping keys in the forecast data are `NA`, that is, that the forecast was produced at the highest level of aggregation which would be `index`.
+
+    + `.is_leaf` (logical): A value of `TRUE` indicates the lowest level of the forecast hierarchy. 
+    After forecasts are reconciled across forecast hierarchies, it's the forecasts at these granular leaves 
+    that are aggregated to produce coherent reconciled forecasts at any level desired.
+    
+    + `keys` and `index`: The data set column names passed in `sum_matrix(keys = "", index = "")` are returned as-is.
+    
+    + `x1:xN`: The columns labeled x1, x2, ..., xN are the sum matrix.
+
+``` r
+library(reconciler)
+library(dplyr)
+
+data <- get(data(widgets, package = "reconcileR"))
+
+sum_matrix <- reconcileR::sum_matrix(
+  data = data %>% dplyr::filter(!!rlang::sym(index) == min(!!rlang::sym(index))),
+  keys = keys,
+  index = index,
+  .return = "tibble"
+)
+
+sum_matrix
+```
+
+![](./tools/widgets_data_tibble_sum_matrix.png)
+
+### Example 2: Hierarchical forecast reconciliation
 
 Below is an example of hierarchical forecast reconciliation. We'll use the `sum_matrix()` function 
 to capture the hierarchical structure of the `widgets` forecast data set, followed by a simple 
@@ -44,6 +84,7 @@ data <- get(data(widgets, package = "reconcileR"))
 data
 ```
 
+![](./tools/widgets_data.png)
 
 ``` r
 keys <- c("country", "state", "city")
@@ -131,6 +172,7 @@ p <- p + xlab("Date") + ylab("Widgets forecast") + labs("") +
   ggtitle("Total Widget Forecast Comparison by Forecast Hierarchy")
 p
 ```
+
 ![](./tools/hierarchical_forecast_reconciliation.png)
 
 
