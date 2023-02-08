@@ -51,7 +51,7 @@ of `character(0)` would indicate that all grouping keys in the forecast data are
     + `x1:xN`: The columns labeled x1, x2, ..., xN are the sum matrix.
 
 ``` r
-library(reconciler)
+library(reconcileR)
 library(dplyr)
 
 data <- get(data(widgets, package = "reconcileR"))
