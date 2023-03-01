@@ -3,6 +3,7 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/prognostic8R/reconcileR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/prognostic8R/reconcileR/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `reconcileR` is an `R` package which simplifies the process of forecast reconciliation.
@@ -56,6 +57,9 @@ library(dplyr)
 
 data <- get(data(widgets, package = "reconcileR"))
 
+keys <- c("country", "state", "city")
+index <- "date"
+
 sum_matrix <- reconcileR::sum_matrix(
   data = data %>% dplyr::filter(!!rlang::sym(index) == min(!!rlang::sym(index))),
   keys = keys,
@@ -107,9 +111,9 @@ within a single call to `sum_matrix()` is a design choice that gives the user mo
 sum_matrices <- lapply(dates, function(date) {
 
   reconcileR::sum_matrix(
-    data %>% dplyr::filter(!!rlang::sym(index) == !!date),
-    keys,
-    index,
+    data = data %>% dplyr::filter(!!rlang::sym(index) == !!date),
+    keys = keys,
+    index = index,
     .return = "matrix"
     )
 })
