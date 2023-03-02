@@ -1,3 +1,33 @@
+#' Create sum matrices for forecast reconciliation
+#'
+#' @description
+#' Simply input a `data.frame` and return a sum matrix that automatically captures
+#' a forecast hierarchy.
+#'
+#' @param data A data frame.
+#' @param keys A character vector of column names in `data` that define the groups/forecast hierarchy.
+#' @param index The name of a date column.
+#' @param outcomes The column name of the outcome being forecasted.
+#' @param sort If `sort = TRUE` and `.return = "tibble"`, the returned data frame is sorted by the `keys` columns.
+#' @param .return The class of the object returned.
+#' @returns If `.return = "matrix"`, a matrix. If `.return = "tibble"`, a data frame with class `tibble`.
+#' @examples
+#' library(reconcileR)
+#' keys <- c("country", "state", "city")
+#' index <- "date"
+#' outcome <- "widgets"
+#'
+#' data <- get(data(widgets, package = "reconcileR"))
+#'
+#' dates <- unique(data[[index]])
+#'
+#' data <- reconcileR::sum_matrix(
+#'   data %>% dplyr::filter(!!rlang::sym(index) == min(!!rlang::sym(index))),
+#'   keys,
+#'   index,
+#'   .return = "tibble"
+#' )
+#' @export
 sum_matrix <- function(data, keys, index, outcomes = NULL, sort = FALSE, .return = c("matrix", "tibble")) {
 
   .return <- .return[1]
@@ -10,14 +40,14 @@ sum_matrix <- function(data, keys, index, outcomes = NULL, sort = FALSE, .return
   data_keys_1 <- data_keys %>%
     dplyr::rowwise() %>%
     dplyr::mutate(.keys = list({keys}[!is.na(dplyr::cur_data())])) %>%
-    dplyr::select(.keys) %>%
-    tibble::as_tibble()
+    tibble::as_tibble() %>%
+    dplyr::select(.keys)
 
   data_keys_2 <- data_keys %>%
     dplyr::rowwise() %>%
     dplyr::mutate(.is_leaf = length(!!keys) == sum(!is.na(dplyr::cur_data()))) %>%
-    dplyr::select(.is_leaf) %>%
-    tibble::as_tibble()
+    tibble::as_tibble() %>%
+    dplyr::select(.is_leaf)
 
   data <- dplyr::bind_cols(data_keys_1, data_keys_2, data_keys, data %>% dplyr::select(tidyselect::any_of(c(index, outcomes))))
 
@@ -33,7 +63,7 @@ sum_matrix <- function(data, keys, index, outcomes = NULL, sort = FALSE, .return
 
   sum_matrix_leaf <- diag(n_cols_leaf)
   storage.mode(sum_matrix_leaf) <- "integer"
-  sum_matrix_leaf <- setNames(tibble::as_tibble(sum_matrix_leaf), paste0("x", 1:n_cols_leaf))
+  sum_matrix_leaf <- stats::setNames(tibble::as_tibble(sum_matrix_leaf), paste0("x", 1:n_cols_leaf))
 
   data_ <- lapply(data[2:length(data)], function(x) {
 
